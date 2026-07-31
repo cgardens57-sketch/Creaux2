@@ -3,6 +3,7 @@ import '../../test/mocks/plugin-fs';
 import { mockIPC } from '@tauri-apps/api/mocks';
 
 import { usePluginStore } from '../../stores/pluginStore';
+import { useProvidersStore } from '../../stores/providersStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { MarketplacePluginBuilder } from '../../test/builders/MarketplacePluginBuilder';
 import { FetchMock } from '../../test/mocks/fetch';
@@ -10,6 +11,7 @@ import { PluginFsMock } from '../../test/mocks/plugin-fs';
 import { resetInMemoryTauriStore } from '../../test/utils/inMemoryTauriStore';
 import { seedPlugin } from '../../test/utils/seedPlugins';
 import { createPluginFolder } from '../../test/utils/testPluginFolder';
+import { providersHost } from '../providersHost';
 import { checkAndUpdatePlugins } from './pluginAutoUpdate';
 
 const logWarn = vi.fn();
@@ -30,6 +32,7 @@ describe('checkAndUpdatePlugins', () => {
     PluginFsMock.reset();
     FetchMock.init();
     usePluginStore.setState({ plugins: {} });
+    useProvidersStore.setState({ active: {} });
     mockIPC((cmd) => {
       if (cmd === 'copy_dir_recursive') {
         return true;
@@ -283,5 +286,34 @@ describe('checkAndUpdatePlugins', () => {
       '2.0.0',
     );
     expect(plugins.getPlugin('disabled-plugin')?.enabled).toBe(false);
+  });
+
+  it('preserves active provider selections while a plugin reloads', async () => {
+    useSettingsStore.getState().setValue('core.plugins.autoUpdate', true);
+    await seedPlugin({ id: 'provider-plugin', enabled: true });
+    providersHost.setActive('metadata', 'omnisource-meta');
+    providersHost.setActive('streaming', 'omnisource-stream');
+
+    FetchMock.get('plugin-registry', {
+      version: 1,
+      plugins: [
+        new MarketplacePluginBuilder()
+          .withId('provider-plugin')
+          .withVersion('2.0.0')
+          .withDownloadUrl('https://example.com/provider-plugin.zip')
+          .build(),
+      ],
+    });
+    createPluginFolder(`${DOWNLOAD_BASE}/provider-plugin`, {
+      id: 'provider-plugin',
+      version: '2.0.0',
+    });
+
+    await checkAndUpdatePlugins();
+
+    expect(useProvidersStore.getState().active).toMatchObject({
+      metadata: 'omnisource-meta',
+      streaming: 'omnisource-stream',
+    });
   });
 });

@@ -7,9 +7,12 @@ import { startAdvancedThemeWatcher } from './services/advancedThemeWatcher';
 import { initBridgeHandler } from './services/bridge/bridgeHandler';
 import { registerBuiltInCoreSettings } from './services/coreSettings';
 import { initDiscordHandler } from './services/discordHandler';
-import { initDiscoveryService } from './services/discoveryService';
 import { initHistoryService } from './services/history';
 import { initHttpApiHandler } from './services/httpApi';
+import {
+  cacheLastPlayedTrack,
+  readLastPlayedTrack,
+} from './services/lastPlayedTrackCache';
 import {
   applyLanguageFromSettings,
   initLanguageWatcher,
@@ -22,11 +25,11 @@ import { hydratePluginsFromRegistry } from './services/plugins/pluginBootstrap';
 import { ytdlpEnsureInstalled } from './services/tauri/commands';
 import { initializeFavoritesStore } from './stores/favoritesStore';
 import { initializePlaylistStore } from './stores/playlistStore';
-import { initializeQueueStore } from './stores/queueStore';
+import { initializeProvidersStore } from './stores/providersStore';
+import { initializeQueueStore, useQueueStore } from './stores/queueStore';
 import { initializeSettingsStore } from './stores/settingsStore';
 import { initializeShortcutsStore } from './stores/shortcutsStore';
 import { hydrateThemeStore } from './stores/themeStore';
-import { useUpdaterStore } from './stores/updaterStore';
 
 export const initPlayerApp = async (
   root: ReturnType<typeof import('react-dom/client').createRoot>,
@@ -35,11 +38,22 @@ export const initPlayerApp = async (
 
   await initializeSettingsStore()
     .then(() => initializeShortcutsStore())
+    .then(() => initializeProvidersStore())
     .then(() => initializeQueueStore())
+    .then(async () => {
+      const lastPlayedTrack = await readLastPlayedTrack();
+      if (lastPlayedTrack) {
+        useQueueStore.getState().restoreLastPlayedTrack(lastPlayedTrack);
+        return;
+      }
+      const currentTrack = useQueueStore.getState().getCurrentItem()?.track;
+      if (currentTrack) {
+        await cacheLastPlayedTrack(currentTrack);
+      }
+    })
     .then(() => initializeFavoritesStore())
     .then(() => initializePlaylistStore())
     .then(() => registerBuiltInCoreSettings())
-    .then(() => initDiscoveryService())
     .then(() => initMcpHandler())
     .then(() => initMpdHandler())
     .then(() => initHttpApiHandler())
@@ -55,7 +69,6 @@ export const initPlayerApp = async (
     .then(() => applyThemeFromSettingsIfAny())
     .then(() => {
       void hydratePluginsFromRegistry();
-      void useUpdaterStore.getState().checkForUpdate();
       void ytdlpEnsureInstalled();
     });
 

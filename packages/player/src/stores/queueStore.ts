@@ -21,11 +21,22 @@ import { useSoundStore } from './soundStore';
 
 const QUEUE_FILE = 'queue.json';
 const store = new LazyStore(QUEUE_FILE);
+const CURRENT_ITEM_ID_KEY = 'queue.currentItemId';
+
+type QueuePersistenceSnapshot = {
+  items: QueueItem[];
+  currentIndex: number;
+  currentItemId?: string;
+};
+
+let pendingSnapshot: QueuePersistenceSnapshot | undefined;
+let persistenceTask: Promise<void> | undefined;
 
 type QueueStore = Queue & {
   isLoading: boolean;
   isReady: boolean;
   loadFromDisk: () => Promise<void>;
+  restoreLastPlayedTrack: (track: Track) => void;
   addToQueue: (tracks: Track[]) => void;
   addNext: (tracks: Track[]) => void;
   addAt: (tracks: Track[], index: number) => void;
@@ -103,15 +114,40 @@ const emitSkip = (): void => {
   });
 };
 
-const saveToDisk = async (): Promise<void> => {
-  try {
-    const state = useQueueStore.getState();
-    await store.set('queue.items', state.items);
-    await store.set('queue.currentIndex', state.currentIndex);
-    await store.save();
-  } catch (error) {
-    Logger.queue.error(`Failed to save queue: ${errorMessage(error)}`);
+const writePendingSnapshots = async (): Promise<void> => {
+  while (pendingSnapshot) {
+    const snapshot = pendingSnapshot;
+    pendingSnapshot = undefined;
+
+    try {
+      await store.set('queue.items', snapshot.items);
+      await store.set('queue.currentIndex', snapshot.currentIndex);
+      await store.set(CURRENT_ITEM_ID_KEY, snapshot.currentItemId ?? null);
+      await store.save();
+    } catch (error) {
+      Logger.queue.error(`Failed to save queue: ${errorMessage(error)}`);
+    }
   }
+};
+
+const saveToDisk = (): Promise<void> => {
+  const state = useQueueStore.getState();
+  pendingSnapshot = {
+    items: state.items,
+    currentIndex: state.currentIndex,
+    currentItemId: state.getCurrentItem()?.id,
+  };
+
+  if (!persistenceTask) {
+    persistenceTask = writePendingSnapshots().finally(() => {
+      persistenceTask = undefined;
+      if (pendingSnapshot) {
+        void saveToDisk();
+      }
+    });
+  }
+
+  return persistenceTask;
 };
 
 const withPersistence = <T extends unknown[]>(
@@ -133,9 +169,17 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     set({ isLoading: true });
     const items = (await store.get<QueueItem[]>('queue.items')) ?? [];
     const currentIndex = (await store.get<number>('queue.currentIndex')) ?? 0;
+    const currentItemId = await store.get<string>(CURRENT_ITEM_ID_KEY);
 
+    const itemIdIndex = currentItemId
+      ? items.findIndex((item) => item.id === currentItemId)
+      : -1;
     const sanitizedIndex =
-      currentIndex >= 0 && currentIndex < items.length ? currentIndex : 0;
+      itemIdIndex >= 0
+        ? itemIdIndex
+        : currentIndex >= 0 && currentIndex < items.length
+          ? currentIndex
+          : 0;
 
     const resetItems = items.map((item) => ({
       ...item,
@@ -151,6 +195,27 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     });
 
     Logger.queue.info(`Loaded ${resetItems.length} items from disk`);
+  },
+
+  restoreLastPlayedTrack: (track: Track) => {
+    const restoredTrack = stripResolutionState(track);
+    const existingIndex = get().items.findIndex(
+      (item) =>
+        item.track.source.provider === restoredTrack.source.provider &&
+        item.track.source.id === restoredTrack.source.id,
+    );
+
+    if (existingIndex >= 0) {
+      set({ currentIndex: existingIndex });
+      return;
+    }
+
+    set(
+      produce((state: QueueStore) => {
+        state.items.push(createQueueItem(restoredTrack));
+        state.currentIndex = state.items.length - 1;
+      }),
+    );
   },
 
   addToQueue: withPersistence((tracks: Track[]) => {
@@ -203,8 +268,10 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
       }),
     );
 
-    if (currentItemRemoved || get().items.length === 0) {
+    if (get().items.length === 0) {
       useSoundStore.getState().stop();
+    } else if (currentItemRemoved) {
+      useSoundStore.getState().beginTransition();
     }
   }),
 
@@ -231,8 +298,10 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
       }),
     );
 
-    if (currentIndexRemoved || get().items.length === 0) {
+    if (get().items.length === 0) {
       useSoundStore.getState().stop();
+    } else if (currentIndexRemoved) {
+      useSoundStore.getState().beginTransition();
     }
   }),
 
@@ -338,7 +407,7 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     const nextIndex = getDirectionalIndex(state, 'forward');
     if (nextIndex !== state.currentIndex) {
       emitSkip();
-      useSoundStore.getState().stop();
+      useSoundStore.getState().beginTransition();
       set({ currentIndex: nextIndex });
       Logger.queue.debug(`Moved to next track (index ${nextIndex})`);
     }
@@ -349,7 +418,7 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     const previousIndex = getDirectionalIndex(state, 'backward');
     if (previousIndex !== state.currentIndex) {
       emitSkip();
-      useSoundStore.getState().stop();
+      useSoundStore.getState().beginTransition();
       set({ currentIndex: previousIndex });
       Logger.queue.debug(`Moved to previous track (index ${previousIndex})`);
     }
@@ -359,7 +428,9 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     const repeatMode = (getSetting('core.playback.repeat') as string) ?? 'off';
 
     if (repeatMode === 'one') {
-      useSoundStore.getState().seekTo(0);
+      const sound = useSoundStore.getState();
+      sound.seekTo(0);
+      sound.play();
       const currentTrack = get().getCurrentItem()?.track;
       if (currentTrack) {
         eventBus.emit('trackStarted', currentTrack);
@@ -367,24 +438,38 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
       return;
     }
 
+    const currentIndex = get().currentIndex;
     get().goToNext();
+    if (get().currentIndex === currentIndex) {
+      const sound = useSoundStore.getState();
+      if (repeatMode === 'all' && get().items.length === 1) {
+        sound.seekTo(0);
+        sound.play();
+        const currentTrack = get().getCurrentItem()?.track;
+        if (currentTrack) {
+          eventBus.emit('trackStarted', currentTrack);
+        }
+      } else {
+        sound.stop();
+      }
+    }
   },
 
   goToIndex: withPersistence((index: number) => {
-    const { items } = get();
-    if (index >= 0 && index < items.length) {
+    const { items, currentIndex } = get();
+    if (index >= 0 && index < items.length && index !== currentIndex) {
       emitSkip();
-      useSoundStore.getState().stop();
+      useSoundStore.getState().beginTransition();
       set({ currentIndex: index });
     }
   }),
 
   goToId: withPersistence((id: string) => {
-    const { items } = get();
+    const { items, currentIndex } = get();
     const index = items.findIndex((item) => item.id === id);
-    if (index !== -1) {
+    if (index !== -1 && index !== currentIndex) {
       emitSkip();
-      useSoundStore.getState().stop();
+      useSoundStore.getState().beginTransition();
       set({ currentIndex: index });
     }
   }),

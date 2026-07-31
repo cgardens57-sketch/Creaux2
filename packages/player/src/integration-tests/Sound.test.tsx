@@ -1,7 +1,8 @@
-import { act, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { AudioSource } from '@nuclearplayer/hifi';
 
+import { usePresentedAudioSource } from '../components/SoundProvider';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useSoundStore } from '../stores/soundStore';
 import { SoundWrapper } from './Sound.test-wrapper';
@@ -14,6 +15,54 @@ const srcA: AudioSource = { url: '/a.mp3', protocol: 'http' };
 const srcB: AudioSource = { url: '/b.mp3', protocol: 'http' };
 
 describe('Sound component', () => {
+  it('keeps the intro stream through unlock until the queue item changes', () => {
+    const { result, rerender } = renderHook(
+      ({
+        lockSource,
+        src,
+        srcItemId,
+      }: {
+        lockSource: boolean;
+        src: AudioSource | null;
+        srcItemId: string | null;
+      }) => usePresentedAudioSource({ lockSource, src, srcItemId }),
+      {
+        initialProps: {
+          lockSource: false,
+          src: srcA,
+          srcItemId: 'intro-item',
+        },
+      },
+    );
+
+    expect(result.current).toBe(srcA);
+
+    rerender({
+      lockSource: true,
+      src: srcB,
+      srcItemId: 'intro-item',
+    });
+    expect(result.current).toBe(srcA);
+
+    rerender({
+      lockSource: false,
+      src: srcB,
+      srcItemId: 'intro-item',
+    });
+    expect(result.current).toBe(srcA);
+
+    const nextSource: AudioSource = {
+      url: '/next.mp3',
+      protocol: 'http',
+    };
+    rerender({
+      lockSource: false,
+      src: nextSource,
+      srcItemId: 'next-item',
+    });
+    expect(result.current).toBe(nextSource);
+  });
+
   it('mounts app and renders Sound only after src is set', async () => {
     await SoundWrapper.mount();
     expect(document.querySelectorAll('audio').length).toBe(0);
@@ -85,6 +134,8 @@ describe('Repeat mode behavior when a track ends', () => {
       status: 'stopped',
       seek: 0,
       duration: 0,
+      transitioning: false,
+      playbackRequestId: 0,
       crossfadeMs: 0,
       preload: 'auto',
       crossOrigin: '',

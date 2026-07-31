@@ -28,6 +28,8 @@ import {
 import { ConnectedSettingsModal } from '../components/ConnectedSettingsModal';
 import { ConnectedTitleBar } from '../components/ConnectedTitleBar';
 import { ConnectedTopBar } from '../components/ConnectedTopBar';
+import { CreauxInterfaceLayer } from '../components/CreauxInterfaceLayer';
+import { CreauxMark } from '../components/CreauxMark';
 import { DevTools } from '../components/DevTools';
 import { FlatpakWarningBanner } from '../components/FlatpakWarningBanner';
 import { SoundProvider } from '../components/SoundProvider';
@@ -51,7 +53,11 @@ const RootComponent = () => {
   const openSettings = useSettingsModalStore((state) => state.open);
   const isStartingUp = useStartupStore((state) => state.isStartingUp);
   return (
-    <PlayerShell onContextMenu={(e) => e.preventDefault()}>
+    <PlayerShell
+      className="creaux2-shell"
+      onContextMenu={(event) => event.preventDefault()}
+    >
+      <CreauxInterfaceLayer />
       <GlobalShortcuts />
       <div>
         <ConnectedTitleBar />
@@ -62,12 +68,17 @@ const RootComponent = () => {
       <SoundProvider>
         <PlayerWorkspace>
           <PlayerWorkspace.LeftSidebar
+            className="creaux2-sidebar creaux2-sidebar-left"
             width={leftSidebar.width}
             isCollapsed={leftSidebar.isCollapsed}
             onWidthChange={setLeftSidebarWidth}
             onToggle={toggleLeftSidebar}
           >
             <SidebarNavigation isCompact={leftSidebar.isCollapsed}>
+              <CreauxMark compact={leftSidebar.isCollapsed} />
+              {!leftSidebar.isCollapsed && (
+                <div className="creaux-nav-caption">Navigation lattice</div>
+              )}
               <div className="flex flex-1 flex-col gap-2 overflow-y-auto">
                 <SidebarNavigationItem
                   to="/dashboard"
@@ -118,6 +129,7 @@ const RootComponent = () => {
           </PlayerWorkspace.Main>
 
           <PlayerWorkspace.RightSidebar
+            className="creaux2-sidebar creaux2-sidebar-right"
             width={rightSidebar.width}
             isCollapsed={rightSidebar.isCollapsed}
             onWidthChange={setRightSidebarWidth}

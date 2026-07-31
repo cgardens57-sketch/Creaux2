@@ -31,25 +31,25 @@ beforeEach(() => {
 });
 
 describe('Custom title bar', () => {
-  it('title bar is hidden by default', async () => {
+  it('title bar is visible by default', async () => {
     await CustomTitleBarWrapper.mount();
+
+    expect(CustomTitleBarWrapper.titleBar).toBeInTheDocument();
+    expect(
+      screen.getByText('Creaux2 — Listening Observatory'),
+    ).toBeInTheDocument();
+  });
+
+  it('title bar disappears when setting is disabled', async () => {
+    await CustomTitleBarWrapper.mount();
+    await CustomTitleBarWrapper.openSettings();
+    await CustomTitleBarWrapper.customTitleBarToggle.click();
 
     expect(CustomTitleBarWrapper.titleBar).not.toBeInTheDocument();
   });
 
-  it('title bar appears when setting is enabled', async () => {
+  it('custom title bar hides window decorations', async () => {
     await CustomTitleBarWrapper.mount();
-    await CustomTitleBarWrapper.openSettings();
-    await CustomTitleBarWrapper.customTitleBarToggle.click();
-
-    expect(CustomTitleBarWrapper.titleBar).toBeInTheDocument();
-    expect(screen.getByText('Nuclear Music Player')).toBeInTheDocument();
-  });
-
-  it('enabling custom title bar hides window decorations', async () => {
-    await CustomTitleBarWrapper.mount();
-    await CustomTitleBarWrapper.openSettings();
-    await CustomTitleBarWrapper.customTitleBarToggle.click();
 
     expect(mockWindow.setDecorations).toHaveBeenCalledWith(false);
     expect(mockWindow.setMinimizable).toHaveBeenCalledWith(true);
@@ -58,7 +58,6 @@ describe('Custom title bar', () => {
   it('shows macOS-style controls when titleBarStyle is set to macOS', async () => {
     await CustomTitleBarWrapper.mount();
     await CustomTitleBarWrapper.openSettings();
-    await CustomTitleBarWrapper.customTitleBarToggle.click();
     await CustomTitleBarWrapper.titleBarStyleSelect.select('macOS');
 
     expect(CustomTitleBarWrapper.macWindowControls).toBeInTheDocument();
@@ -68,7 +67,6 @@ describe('Custom title bar', () => {
   it('shows Windows-style controls when titleBarStyle is set to Windows / Linux', async () => {
     await CustomTitleBarWrapper.mount();
     await CustomTitleBarWrapper.openSettings();
-    await CustomTitleBarWrapper.customTitleBarToggle.click();
     await CustomTitleBarWrapper.titleBarStyleSelect.select('Windows / Linux');
 
     expect(CustomTitleBarWrapper.windowsWindowControls).toBeInTheDocument();
@@ -78,7 +76,6 @@ describe('Custom title bar', () => {
   it('clicking minimize calls Tauri minimize', async () => {
     await CustomTitleBarWrapper.mount();
     await CustomTitleBarWrapper.openSettings();
-    await CustomTitleBarWrapper.customTitleBarToggle.click();
     await CustomTitleBarWrapper.titleBarStyleSelect.select('Windows / Linux');
     await CustomTitleBarWrapper.minimizeButton.click();
 
@@ -88,20 +85,19 @@ describe('Custom title bar', () => {
   it('clicking close calls Tauri close', async () => {
     await CustomTitleBarWrapper.mount();
     await CustomTitleBarWrapper.openSettings();
-    await CustomTitleBarWrapper.customTitleBarToggle.click();
     await CustomTitleBarWrapper.titleBarStyleSelect.select('Windows / Linux');
     await CustomTitleBarWrapper.closeButton.click();
 
     expect(mockWindow.close).toHaveBeenCalledOnce();
   });
 
-  it('title bar disappears when setting is disabled after being enabled', async () => {
+  it('title bar reappears when setting is enabled after being disabled', async () => {
     await CustomTitleBarWrapper.mount();
     await CustomTitleBarWrapper.openSettings();
     await CustomTitleBarWrapper.customTitleBarToggle.click();
-    expect(CustomTitleBarWrapper.titleBar).toBeInTheDocument();
+    expect(CustomTitleBarWrapper.titleBar).not.toBeInTheDocument();
 
     await CustomTitleBarWrapper.customTitleBarToggle.click();
-    expect(CustomTitleBarWrapper.titleBar).not.toBeInTheDocument();
+    expect(CustomTitleBarWrapper.titleBar).toBeInTheDocument();
   });
 });

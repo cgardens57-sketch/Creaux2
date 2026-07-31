@@ -1,8 +1,8 @@
 {
   "common": {
     "app": {
-      "name": "Nuclear",
-      "description": "Music streaming app for your desktop"
+      "name": "Creaux2",
+      "description": "A source-independent listening observatory"
     },
     "actions": {
       "save": "Save",
@@ -27,7 +27,7 @@
   },
   "navigation": {
     "explore": "Explore",
-    "dashboard": "Dashboard",
+    "dashboard": "Observatory",
     "collection": "Collection",
     "favoriteAlbums": "Favorite albums",
     "favoriteTracks": "Favorite tracks",
@@ -209,10 +209,10 @@
     }
   },
   "dashboard": {
-    "title": "Dashboard",
-    "empty-state": "Welcome to Nuclear",
-    "empty-state-description": "Install a plugin to see top tracks, new releases, and recommendations here.",
-    "empty-state-action": "Browse plugins",
+    "title": "The Observatory",
+    "empty-state": "The observatory is quiet",
+    "empty-state-description": "Connect a real metadata or dashboard provider to begin. Creaux2 will never invent content to fill this space.",
+    "empty-state-action": "Connect a source",
     "top-tracks": "Top Tracks",
     "top-artists": "Top Artists",
     "top-albums": "Top Albums",
@@ -547,7 +547,7 @@
     }
   },
   "titleBar": {
-    "title": "Nuclear Music Player",
+    "title": "Creaux2 — Listening Observatory",
     "minimize": "Minimize",
     "maximize": "Maximize",
     "close": "Close"

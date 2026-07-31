@@ -3,9 +3,11 @@ import { normalize } from '@tauri-apps/api/path';
 import { usePluginStore } from '../../stores/pluginStore';
 import { useStartupStore } from '../../stores/startupStore';
 import { errorMessage } from '../../utils/errorMessage';
+import { Logger } from '../logger';
 import { providersHost } from '../providersHost';
 import { createPluginAPI } from './createPluginAPI';
 import { checkAndUpdatePlugins } from './pluginAutoUpdate';
+import { isCreauxPluginSupported } from './creauxPluginPolicy';
 import { getPluginsDir } from './pluginDir';
 import { PluginLoader } from './PluginLoader';
 import {
@@ -29,6 +31,12 @@ export const hydratePluginsFromRegistry = async (): Promise<void> => {
   );
 
   for (const entry of entries) {
+    if (!isCreauxPluginSupported(entry.id)) {
+      Logger.plugins.info(
+        `Skipping ${entry.id}; this integration is not part of Creaux2`,
+      );
+      continue;
+    }
     // TODO: Support non-managed paths (dev plugins)
     if (!(await isManagedPath(entry.path))) {
       continue;
@@ -79,8 +87,17 @@ export const hydratePluginsFromRegistry = async (): Promise<void> => {
 
   providersHost.resolveActiveOnBootstrap();
 
+  try {
+    // Provider updates can briefly unload and re-register the active source.
+    // Keep startup open until that work settles so title playback never begins
+    // against a source that is about to be replaced.
+    await checkAndUpdatePlugins();
+  } catch (error) {
+    Logger.plugins.warn(
+      `Plugin update check failed during startup: ${errorMessage(error)}`,
+    );
+  }
+
   const startupFinishTime = Date.now();
   useStartupStore.getState().finishStartup(startupFinishTime - now);
-
-  void checkAndUpdatePlugins();
 };

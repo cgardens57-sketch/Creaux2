@@ -7,10 +7,7 @@ import type {
   ProvidersHost,
 } from '@nuclearplayer/plugin-sdk';
 
-import {
-  initializeProvidersStore,
-  useProvidersStore,
-} from '../stores/providersStore';
+import { useProvidersStore } from '../stores/providersStore';
 import { setupStreamingPairingSync } from './streamingPairingSync';
 
 const PROVIDER_KINDS: ProviderKind[] = [
@@ -176,5 +173,3 @@ const createProvidersHost = (): ProvidersHost => {
 export const providersHost: ProvidersHost = createProvidersHost();
 
 setupStreamingPairingSync(providersHost);
-
-void initializeProvidersStore();

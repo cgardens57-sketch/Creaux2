@@ -4,7 +4,6 @@ import { FC } from 'react';
 import {
   Tooltip,
   TopBar,
-  TopBarLogo,
   TopBarNavigation,
 } from '@nuclearplayer/ui';
 
@@ -13,6 +12,8 @@ import { useCanGoForward } from '../hooks/useCanGoForward';
 import { useCoreSetting } from '../hooks/useCoreSetting';
 import { useFramelessWindow } from '../hooks/useFramelessWindow';
 import { ConnectedThemeController } from './ConnectedThemeController';
+import { ConnectedSourceStatus } from './ConnectedSourceStatus';
+import { CreauxMark } from './CreauxMark';
 import { JamQrCodeButton } from './JamQrCodeButton';
 import { SearchBox } from './SearchBox';
 import { UpdateBadge } from './UpdateBadge';
@@ -28,15 +29,15 @@ export const ConnectedTopBar: FC = () => {
   );
 
   return (
-    <TopBar draggable={frameless}>
-      <div className="flex flex-row items-center gap-4">
+    <TopBar className="creaux2-topbar" draggable={frameless}>
+      <div className="flex min-w-0 flex-row items-center gap-4">
         {!isTitleBarEnabled && (
           <Tooltip
-            content={`Nuclear ${version}`}
+            content={`Creaux2 ${version}`}
             side="bottom"
             wrapperClassName="flex items-center"
           >
-            <TopBarLogo />
+            <CreauxMark compact />
           </Tooltip>
         )}
         <TopBarNavigation
@@ -49,6 +50,7 @@ export const ConnectedTopBar: FC = () => {
       </div>
       <SearchBox />
       <div className="flex flex-row items-center justify-end gap-2">
+        <ConnectedSourceStatus />
         <JamQrCodeButton />
         <ConnectedThemeController />
       </div>

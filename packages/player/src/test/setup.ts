@@ -160,6 +160,8 @@ const makeAudioContextMock = () => {
       connect: () => ctx,
       disconnect: vi.fn(),
       gain: {
+        value: 1,
+        cancelScheduledValues: vi.fn(),
         setValueAtTime: vi.fn(),
         linearRampToValueAtTime: vi.fn(),
       },

@@ -4,7 +4,6 @@ import {
   RenderResult,
   screen,
   waitFor,
-  within,
 } from '@testing-library/react';
 
 import { AudioSource } from '@nuclearplayer/hifi';
@@ -40,11 +39,11 @@ export const SoundWrapper = {
   },
 
   get nowPlayingTitle() {
-    return screen.queryByTestId('now-playing-title')?.textContent;
+    return document.querySelector('.cx-player-track b')?.textContent;
   },
 
   get nowPlayingArtist() {
-    return screen.queryByTestId('player-now-playing-artist')?.textContent;
+    return document.querySelector('.cx-player-track span')?.textContent;
   },
 
   get currentQueueItem() {
@@ -55,11 +54,7 @@ export const SoundWrapper = {
   },
 
   get currentQueueItemTitle() {
-    const current = this.currentQueueItem;
-    if (!current) {
-      return undefined;
-    }
-    return within(current).queryByTestId('queue-item-title')?.textContent;
+    return useQueueStore.getState().getCurrentItem()?.track.title;
   },
 
   setSrc(src: AudioSource) {

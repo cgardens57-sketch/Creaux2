@@ -20,6 +20,7 @@ vi.mock('@tauri-apps/plugin-fs', () => ({
 }));
 
 vi.mock('sonner', () => ({
+  Toaster: () => null,
   toast: {
     error: vi.fn(),
     success: vi.fn(),

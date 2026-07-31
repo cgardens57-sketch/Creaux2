@@ -5,6 +5,7 @@ import { KeyboardShortcutsWrapper } from './KeyboardShortcuts.test-wrapper';
 
 const toastError = vi.fn();
 vi.mock('sonner', () => ({
+  Toaster: () => null,
   toast: {
     error: (...args: unknown[]) => toastError(...args),
   },

@@ -10,6 +10,7 @@ storybook-static
 coverage
 test-results
 .DS_Store
+work/
 
 flatpak/pnpm-sources.json
 flatpak/cargo-sources.json

@@ -13,6 +13,7 @@ import { PlaylistsWrapper } from './Playlists.test-wrapper';
 const toastError = vi.fn();
 const toastSuccess = vi.fn();
 vi.mock('sonner', () => ({
+  Toaster: () => null,
   toast: {
     error: (...args: unknown[]) => toastError(...args),
     success: (...args: unknown[]) => toastSuccess(...args),

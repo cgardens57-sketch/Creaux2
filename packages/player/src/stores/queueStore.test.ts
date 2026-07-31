@@ -5,6 +5,7 @@ import { resetInMemoryTauriStore } from '../test/utils/inMemoryTauriStore';
 import { createMockTrack } from '../test/utils/mockTrack';
 import { initializeQueueStore, useQueueStore } from './queueStore';
 import { useSettingsStore } from './settingsStore';
+import { useSoundStore } from './soundStore';
 
 describe('useQueueStore', () => {
   beforeEach(() => {
@@ -18,6 +19,14 @@ describe('useQueueStore', () => {
       isLoading: false,
     });
     useSettingsStore.setState({ values: {} });
+    useSoundStore.setState({
+      src: null,
+      status: 'stopped',
+      seek: 0,
+      duration: 0,
+      transitioning: false,
+      playbackRequestId: 0,
+    });
   });
 
   describe('initial state', () => {
@@ -285,6 +294,10 @@ describe('useQueueStore', () => {
     it('goToNext increments currentIndex', () => {
       useQueueStore.getState().goToNext();
       expect(useQueueStore.getState().currentIndex).toBe(1);
+      expect(useSoundStore.getState()).toMatchObject({
+        status: 'playing',
+        transitioning: true,
+      });
     });
 
     it('goToNext stops at end of queue', () => {
@@ -337,6 +350,55 @@ describe('useQueueStore', () => {
       useSettingsStore.setState({ values: { 'core.playback.repeat': 'all' } });
       useQueueStore.getState().goToPrevious();
       expect(useQueueStore.getState().currentIndex).toBe(2);
+    });
+
+    it('issues a fresh play request when repeat-one reaches the end', () => {
+      useSettingsStore.setState({ values: { 'core.playback.repeat': 'one' } });
+      useSoundStore.setState({
+        status: 'playing',
+        seek: 42,
+        playbackRequestId: 4,
+      });
+
+      useQueueStore.getState().advanceOnTrackEnd();
+
+      expect(useQueueStore.getState().currentIndex).toBe(0);
+      expect(useSoundStore.getState()).toMatchObject({
+        status: 'playing',
+        seek: 0,
+        playbackRequestId: 5,
+      });
+    });
+
+    it('replays a one-item queue indefinitely in repeat-all mode', () => {
+      useQueueStore.setState((state) => ({
+        items: state.items.slice(0, 1),
+        currentIndex: 0,
+      }));
+      useSettingsStore.setState({ values: { 'core.playback.repeat': 'all' } });
+      useSoundStore.setState({
+        status: 'playing',
+        seek: 42,
+        playbackRequestId: 8,
+      });
+
+      useQueueStore.getState().advanceOnTrackEnd();
+
+      expect(useSoundStore.getState()).toMatchObject({
+        status: 'playing',
+        seek: 0,
+        playbackRequestId: 9,
+      });
+    });
+
+    it('stops after the final item when repeat is off', () => {
+      useQueueStore.setState({ currentIndex: 2 });
+      useSoundStore.setState({ status: 'playing' });
+
+      useQueueStore.getState().advanceOnTrackEnd();
+
+      expect(useQueueStore.getState().currentIndex).toBe(2);
+      expect(useSoundStore.getState().status).toBe('stopped');
     });
 
     it('goToNext picks a different random index when shuffle is enabled', () => {
@@ -392,6 +454,29 @@ describe('useQueueStore', () => {
       expect(state.isReady).toBe(true);
     });
 
+    it('persists the replacement track when clear and add happen back-to-back', async () => {
+      useQueueStore.getState().addToQueue([createMockTrack('Old Track')]);
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      useQueueStore.getState().clearQueue();
+      useQueueStore.getState().addToQueue([createMockTrack('Last Played')]);
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      useQueueStore.setState({
+        items: [],
+        currentIndex: 0,
+        isReady: false,
+        isLoading: false,
+      });
+
+      await initializeQueueStore();
+
+      expect(useQueueStore.getState().getCurrentItem()?.track.title).toBe(
+        'Last Played',
+      );
+    });
+
     it('sanitizes out-of-bounds currentIndex on load', async () => {
       useQueueStore.getState().addToQueue([createMockTrack('Track 1')]);
       useQueueStore.setState({ currentIndex: 5 });
@@ -406,6 +491,39 @@ describe('useQueueStore', () => {
       await initializeQueueStore();
 
       expect(useQueueStore.getState().currentIndex).toBe(0);
+    });
+  });
+
+  describe('last-played restoration', () => {
+    it('selects the matching cached track already in the queue', () => {
+      useQueueStore
+        .getState()
+        .addToQueue([
+          createMockTrack('First'),
+          createMockTrack('Last Played'),
+        ]);
+
+      useQueueStore
+        .getState()
+        .restoreLastPlayedTrack(createMockTrack('Last Played'));
+
+      expect(useQueueStore.getState().currentIndex).toBe(1);
+      expect(useQueueStore.getState().getCurrentItem()?.track.title).toBe(
+        'Last Played',
+      );
+    });
+
+    it('adds a cached track that is no longer in the queue', () => {
+      useQueueStore.getState().addToQueue([createMockTrack('Queued')]);
+
+      useQueueStore
+        .getState()
+        .restoreLastPlayedTrack(createMockTrack('Last Played'));
+
+      expect(useQueueStore.getState().items).toHaveLength(2);
+      expect(useQueueStore.getState().getCurrentItem()?.track.title).toBe(
+        'Last Played',
+      );
     });
   });
 });

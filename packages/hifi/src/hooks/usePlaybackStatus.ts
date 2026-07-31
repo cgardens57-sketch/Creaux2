@@ -1,36 +1,28 @@
-import { RefObject, useEffect, useRef } from 'react';
+import { RefObject, useEffect } from 'react';
 
 import { SoundStatus } from '../types';
-
-const HAVE_FUTURE_DATA = 3;
-
-const isReadyToPlay = (audio: HTMLAudioElement): boolean =>
-  audio.readyState >= HAVE_FUTURE_DATA;
 
 export const usePlaybackStatus = (
   audioRef: RefObject<HTMLAudioElement | null>,
   status: SoundStatus,
   srcUrl: string,
   onError?: (error: Error) => void,
+  suspended = false,
+  playbackRequestId = 0,
 ) => {
-  const activeSrcRef = useRef(srcUrl);
-
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) {
       return;
     }
-
-    const srcChanged = srcUrl !== activeSrcRef.current;
+    if (suspended) {
+      return;
+    }
 
     const tryPlay = () => {
-      if (!isReadyToPlay(audio)) {
-        return;
-      }
       if (!audio.paused) {
         return;
       }
-      activeSrcRef.current = srcUrl;
       audio.play().then(undefined, (err: DOMException) => {
         if (err.name === 'AbortError') {
           return;
@@ -41,9 +33,10 @@ export const usePlaybackStatus = (
 
     switch (status) {
       case 'playing': {
-        if (!srcChanged) {
-          tryPlay();
-        }
+        // HTMLMediaElement.play() is designed to wait for streaming data.
+        // Requiring HAVE_FUTURE_DATA first can miss a canplay edge and strand
+        // restored tracks in a permanently paused state.
+        tryPlay();
         const onCanPlay = () => tryPlay();
         audio.addEventListener('canplay', onCanPlay);
         return () => audio.removeEventListener('canplay', onCanPlay);
@@ -58,5 +51,5 @@ export const usePlaybackStatus = (
         return;
       }
     }
-  }, [status, srcUrl, audioRef, onError]);
+  }, [status, srcUrl, audioRef, onError, suspended, playbackRequestId]);
 };

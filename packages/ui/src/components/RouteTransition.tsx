@@ -7,27 +7,33 @@ import {
 import { AnimatePresence, motion, useIsPresent } from 'motion/react';
 import { forwardRef, useRef } from 'react';
 
-const SLIDE_DISTANCE = 24;
-const SCALE_FACTOR = 0.96;
+const SLIDE_DISTANCE = 58;
+const SCALE_FACTOR = 0.975;
 
 const slideVariants = {
   enter: {
     x: SLIDE_DISTANCE,
+    rotateY: -4,
     scale: SCALE_FACTOR,
     opacity: 0,
-    filter: 'blur(4px)',
+    filter: 'blur(10px) saturate(.7)',
+    clipPath: 'polygon(8% 0, 100% 0, 94% 100%, 0 100%)',
   },
   center: {
     x: 0,
+    rotateY: 0,
     scale: 1,
     opacity: 1,
-    filter: 'blur(0px)',
+    filter: 'blur(0px) saturate(1)',
+    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
   },
   exit: {
     x: -SLIDE_DISTANCE,
+    rotateY: 4,
     scale: SCALE_FACTOR,
     opacity: 0,
-    filter: 'blur(4px)',
+    filter: 'blur(8px) saturate(.7)',
+    clipPath: 'polygon(0 0, 92% 0, 100% 100%, 6% 100%)',
   },
 };
 
@@ -54,16 +60,14 @@ const AnimatedOutlet = forwardRef<HTMLDivElement>((_, ref) => {
   return (
     <motion.div
       ref={ref}
-      className="absolute inset-0 h-full w-full"
+      className="absolute inset-0 h-full w-full transform-3d"
       variants={slideVariants}
       initial="enter"
       animate="center"
       exit="exit"
       transition={{
-        type: 'spring',
-        stiffness: 400,
-        damping: 30,
-        mass: 0.8,
+        duration: 0.38,
+        ease: [0.16, 1, 0.3, 1],
       }}
     >
       <RouterContextProvider router={frozenRouter.current}>

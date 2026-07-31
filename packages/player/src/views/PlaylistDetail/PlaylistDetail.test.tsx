@@ -35,6 +35,7 @@ vi.mock('@tauri-apps/plugin-fs', () => ({
 const toastError = vi.fn();
 const toastSuccess = vi.fn();
 vi.mock('sonner', () => ({
+  Toaster: () => null,
   toast: {
     error: (...args: unknown[]) => toastError(...args),
     success: (...args: unknown[]) => toastSuccess(...args),

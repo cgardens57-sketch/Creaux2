@@ -62,7 +62,7 @@ export const CustomTitleBarWrapper = {
 
   minimizeButton: {
     get element() {
-      return screen.getByTitle('Minimize');
+      return screen.getByTitle('Minimize Creaux2');
     },
     async click() {
       await user.click(this.element);
@@ -71,7 +71,7 @@ export const CustomTitleBarWrapper = {
 
   closeButton: {
     get element() {
-      return screen.getByTitle('Close');
+      return screen.getByTitle('Close Creaux2');
     },
     async click() {
       await user.click(this.element);

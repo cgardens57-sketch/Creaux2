@@ -5,8 +5,19 @@ import { usePluginStore } from '../../stores/pluginStore';
 import { getSetting } from '../../stores/settingsStore';
 import { errorMessage } from '../../utils/errorMessage';
 import { Logger } from '../logger';
+import { providersHost } from '../providersHost';
 import { downloadAndExtractPlugin } from './pluginDownloader';
+import { isCreauxPluginSupported } from './creauxPluginPolicy';
 import { listRegistryEntries } from './pluginRegistry';
+
+const PROVIDER_KINDS = [
+  'metadata',
+  'streaming',
+  'discovery',
+  'lyrics',
+  'dashboard',
+  'playlists',
+] as const;
 
 export const checkAndUpdatePlugins = async (): Promise<void> => {
   const autoUpdate = getSetting('core.plugins.autoUpdate');
@@ -21,7 +32,9 @@ export const checkAndUpdatePlugins = async (): Promise<void> => {
 
   const entries = await listRegistryEntries();
   const storeEntries = entries.filter(
-    (entry) => entry.installationMethod === 'store',
+    (entry) =>
+      entry.installationMethod === 'store' &&
+      isCreauxPluginSupported(entry.id),
   );
 
   const marketplacePlugins = await pluginMarketplaceApi.getPlugins();
@@ -41,6 +54,9 @@ export const checkAndUpdatePlugins = async (): Promise<void> => {
         `Updating plugin ${entry.id} from version ${entry.version} to ${remote.version}...`,
       );
       const wasEnabled = entry.enabled;
+      const activeProviders = Object.fromEntries(
+        PROVIDER_KINDS.map((kind) => [kind, providersHost.getActive(kind)]),
+      );
 
       const extractedPath = await downloadAndExtractPlugin({
         pluginId: entry.id,
@@ -52,6 +68,12 @@ export const checkAndUpdatePlugins = async (): Promise<void> => {
 
       if (wasEnabled) {
         await usePluginStore.getState().enablePlugin(entry.id);
+      }
+      for (const kind of PROVIDER_KINDS) {
+        const providerId = activeProviders[kind];
+        if (providerId) {
+          providersHost.setActive(kind, providerId);
+        }
       }
       Logger.plugins.info(
         `Successfully updated plugin ${entry.id} to version ${remote.version}`,

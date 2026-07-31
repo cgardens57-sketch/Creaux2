@@ -1,0 +1,513 @@
+.cx-danmaku-battle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 176px minmax(260px, 384px) 168px;
+  gap: 12px;
+  width: 780px;
+  height: 640px;
+  padding: 12px;
+  color: #f5f0f3;
+  border: 2px solid #f5f0f3;
+  background: #050307;
+  box-shadow:
+    0 0 0 4px #170812,
+    0 24px 90px rgb(0 0 0 / 88%);
+  image-rendering: pixelated;
+  scale: var(--cx-danmaku-scale, 1);
+  transform-origin: center;
+  animation: cx-danmaku-enter 360ms steps(6, end) both;
+}
+
+.cx-danmaku-battle::before {
+  position: absolute;
+  inset: 5px;
+  content: "";
+  border: 1px solid #631b35;
+  pointer-events: none;
+}
+
+.cx-danmaku-status,
+.cx-danmaku-command {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #35101f;
+  background: #09060b;
+  font-family: "Space Mono", "Yu Gothic UI", monospace;
+}
+
+.cx-danmaku-boss-id {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  grid-template-rows: auto auto;
+  gap: 1px 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #4a1629;
+}
+
+.cx-danmaku-boss-id img {
+  grid-row: 1 / 3;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.cx-danmaku-boss-id span,
+.cx-danmaku-status dt,
+.cx-danmaku-tension > span {
+  color: #b45a76;
+  font-size: 0.52rem;
+  letter-spacing: 0.12em;
+}
+
+.cx-danmaku-boss-id strong {
+  align-self: start;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+}
+
+.cx-danmaku-status dl {
+  display: grid;
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.cx-danmaku-status dl div {
+  display: grid;
+  gap: 5px;
+}
+
+.cx-danmaku-status dd {
+  margin: 0;
+  color: #fff;
+  font-size: 0.72rem;
+}
+
+.cx-danmaku-lives {
+  display: flex;
+  gap: 8px;
+  min-height: 15px;
+  align-items: center;
+}
+
+.cx-danmaku-lives i {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #653047;
+  transform: rotate(45deg);
+}
+
+.cx-danmaku-lives i.is-live {
+  border-color: #fff;
+  background: #e52d5c;
+  box-shadow: 0 0 8px #e52d5c;
+}
+
+.cx-danmaku-spell-list {
+  display: flex;
+  gap: 7px;
+  margin-top: auto;
+}
+
+.cx-danmaku-spell-list i {
+  width: 28px;
+  height: 3px;
+  background: #30101d;
+}
+
+.cx-danmaku-spell-list i.is-current {
+  background: #f34a72;
+  animation: cx-danmaku-status-pulse 600ms steps(2, end) infinite;
+}
+
+.cx-danmaku-spell-list i.is-cleared {
+  background: #f4edf0;
+}
+
+.cx-danmaku-field-shell {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: 24px minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid #7b2440;
+  background: #07040a;
+}
+
+.cx-danmaku-bossbar {
+  z-index: 5;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 7px;
+  align-items: center;
+  padding: 0 7px;
+  border-bottom: 1px solid #4b1428;
+  background: #0b070c;
+  font-family: "Space Mono", "Yu Gothic UI", monospace;
+  font-size: 0.52rem;
+}
+
+.cx-danmaku-bossbar > span {
+  color: #f1436e;
+}
+
+.cx-danmaku-bossbar > i {
+  height: 4px;
+  overflow: hidden;
+  background: #2b0b18;
+}
+
+.cx-danmaku-bossbar b {
+  display: block;
+  height: 100%;
+  background: #ee3563;
+  transition: width 80ms linear;
+}
+
+.cx-danmaku-bossbar em {
+  color: #a88994;
+  font-style: normal;
+}
+
+.cx-danmaku-field-shell canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  outline: 0;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.cx-danmaku-field-shell canvas:focus-visible {
+  box-shadow: inset 0 0 0 2px #8beaff;
+}
+
+.cx-danmaku-command {
+  justify-content: space-between;
+}
+
+.cx-danmaku-tension {
+  display: grid;
+  grid-template-columns: 1fr 20px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 8px;
+  min-height: 260px;
+}
+
+.cx-danmaku-tension > span {
+  grid-column: 1 / 3;
+}
+
+.cx-danmaku-tension > strong {
+  align-self: start;
+  color: #fff;
+  font-size: 1.15rem;
+}
+
+.cx-danmaku-tension > i {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #77324c;
+  background: #170813;
+}
+
+.cx-danmaku-tension > i b {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  left: 2px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      #e83361 0 4px,
+      #f5e9ee 4px 5px,
+      #e83361 5px 8px
+    );
+  transition: height 80ms linear;
+}
+
+.cx-danmaku-tension > em {
+  grid-column: 1 / 3;
+  color: #815367;
+  font-size: 0.5rem;
+  font-style: normal;
+  line-height: 1.5;
+  letter-spacing: 0.07em;
+}
+
+.cx-danmaku-tension > em.is-ready {
+  color: #fff;
+  text-shadow: 2px 0 #e72e5c;
+  animation: cx-danmaku-ready 320ms steps(2, end) infinite;
+}
+
+.cx-danmaku-controls {
+  display: grid;
+  gap: 7px;
+  padding-top: 12px;
+  border-top: 1px solid #35101f;
+}
+
+.cx-danmaku-controls button {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 7px;
+  align-items: center;
+  margin: 0;
+  padding: 2px;
+  color: inherit;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color 90ms linear,
+    border-color 90ms linear,
+    background-color 90ms linear;
+}
+
+.cx-danmaku-controls button:hover,
+.cx-danmaku-controls button:focus-visible {
+  border-color: #653047;
+  background: #170813;
+  outline: none;
+}
+
+.cx-danmaku-controls button:active,
+.cx-danmaku-controls button.is-active {
+  border-color: #8deaff;
+  background: #10202b;
+}
+
+.cx-danmaku-controls kbd {
+  padding: 3px 4px;
+  color: #fff;
+  border: 1px solid #8d405b;
+  background: #160913;
+  font: inherit;
+  font-size: 0.54rem;
+  text-align: center;
+}
+
+.cx-danmaku-controls span,
+.cx-danmaku-controls small {
+  color: #a76a7d;
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+}
+
+.cx-danmaku-controls button.is-active kbd,
+.cx-danmaku-controls button.is-active span {
+  color: #d9fbff;
+  border-color: #8deaff;
+  text-shadow: 0 0 7px #4bcce9;
+}
+
+.cx-danmaku-controls small {
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.cx-danmaku-spell-banner,
+.cx-danmaku-opening-card {
+  position: absolute;
+  top: 122px;
+  right: 8px;
+  left: 8px;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 9px;
+  padding: 7px 10px;
+  color: #fff;
+  border-left: 3px solid #e62d5c;
+  background: rgb(4 2 5 / 88%);
+  font-family: "Space Mono", "Yu Gothic UI", monospace;
+  animation: cx-danmaku-card 1700ms steps(10, end) both;
+  pointer-events: none;
+}
+
+.cx-danmaku-spell-banner span,
+.cx-danmaku-opening-card span {
+  grid-row: 1 / 3;
+  align-self: center;
+  color: #ef3b66;
+  font-size: 0.7rem;
+}
+
+.cx-danmaku-spell-banner strong,
+.cx-danmaku-opening-card strong {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.cx-danmaku-spell-banner em,
+.cx-danmaku-opening-card em {
+  color: #9f7a88;
+  font-size: 0.42rem;
+  font-style: normal;
+  letter-spacing: 0.1em;
+}
+
+.cx-danmaku-opening-card {
+  top: 84px;
+  border-left-color: #fff;
+  animation-duration: 4800ms;
+}
+
+.cx-danmaku-impact {
+  position: absolute;
+  inset: 24px 0 0;
+  z-index: 12;
+  background: #fff;
+  mix-blend-mode: screen;
+  animation: cx-danmaku-impact 420ms steps(6, end) both;
+  pointer-events: none;
+}
+
+.cx-danmaku-graze {
+  position: absolute;
+  right: 10px;
+  bottom: 42px;
+  z-index: 10;
+  color: #baf5ff;
+  font-family: "Space Mono", monospace;
+  font-size: 0.55rem;
+  font-style: normal;
+  text-shadow: 1px 1px #193e52;
+  animation: cx-danmaku-graze 380ms steps(5, end) both;
+  pointer-events: none;
+}
+
+.cx-danmaku-focus-notice,
+.cx-danmaku-break-notice {
+  position: absolute;
+  z-index: 14;
+  pointer-events: none;
+  font-family: "Space Mono", monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 2px 2px #071015;
+}
+
+.cx-danmaku-focus-notice {
+  right: 9px;
+  bottom: 9px;
+  padding: 4px 6px;
+  color: #c7f7ff;
+  border: 1px solid #438da2;
+  background: rgb(6 19 25 / 88%);
+  font-size: 0.46rem;
+}
+
+.cx-danmaku-break-notice {
+  top: 52%;
+  right: 12px;
+  left: 12px;
+  padding: 8px;
+  color: #a6818d;
+  border: 1px solid #633044;
+  background: rgb(12 5 10 / 92%);
+  font-size: 0.62rem;
+  text-align: center;
+  animation: cx-danmaku-break-denied 720ms steps(6, end) both;
+}
+
+.cx-danmaku-break-notice.is-ready {
+  color: #fff;
+  border-color: #8deaff;
+  background: rgb(10 35 44 / 94%);
+  text-shadow:
+    2px 2px #102d39,
+    0 0 12px #8deaff;
+  animation-name: cx-danmaku-break-ready;
+}
+
+.cx-danmaku-battle.is-focus-active .cx-danmaku-field-shell {
+  box-shadow: inset 0 0 0 1px rgb(141 234 255 / 36%);
+}
+
+.cx-danmaku-battle.opening-stage-1 {
+  box-shadow:
+    0 0 0 4px #4b1327,
+    0 0 90px rgb(224 24 75 / 35%);
+}
+
+.cx-danmaku-battle.opening-stage-2 {
+  animation:
+    cx-danmaku-enter 1ms both,
+    cx-danmaku-heavy-shake 54ms steps(2, end) 9;
+}
+
+@keyframes cx-danmaku-enter {
+  from { opacity: 0; transform: scale(1.04); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cx-danmaku-status-pulse {
+  50% { opacity: 0.35; }
+}
+
+@keyframes cx-danmaku-ready {
+  50% { color: #ef3764; transform: translateX(1px); }
+}
+
+@keyframes cx-danmaku-card {
+  0% { opacity: 0; transform: translateX(38px); }
+  5%, 72% { opacity: 1; transform: translateX(0); }
+  78% { opacity: 0.2; }
+  84% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-16px); }
+}
+
+@keyframes cx-danmaku-impact {
+  0% { opacity: 1; }
+  18% { opacity: 0; }
+  30% { opacity: 0.72; }
+  45%, 100% { opacity: 0; }
+}
+
+@keyframes cx-danmaku-graze {
+  0% { opacity: 0; transform: translateY(4px); }
+  20%, 65% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes cx-danmaku-break-denied {
+  0% { opacity: 0; transform: translateX(-6px); }
+  18% { opacity: 1; transform: translateX(5px); }
+  34% { transform: translateX(-3px); }
+  52% { transform: translateX(2px); }
+  72% { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; }
+}
+
+@keyframes cx-danmaku-break-ready {
+  0% { opacity: 0; transform: scaleX(0.2); }
+  20% { opacity: 1; transform: scaleX(1); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: scaleX(1.06); }
+}
+
+@keyframes cx-danmaku-heavy-shake {
+  0% { transform: translate(-4px, 2px); filter: contrast(1.15); }
+  50% { transform: translate(4px, -2px); filter: contrast(1.35); }
+  100% { transform: translate(-2px, -3px); filter: contrast(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-danmaku-battle,
+  .cx-danmaku-battle *,
+  .cx-danmaku-battle::before {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

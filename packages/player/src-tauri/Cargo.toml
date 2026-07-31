@@ -1,8 +1,8 @@
 [package]
 name = "player"
-version = "1.20.0"
-description = "Nuclear Music Player"
-authors = ["nukeop <12746779+nukeop@users.noreply.github.com>"]
+version = "2.0.0"
+description = "Creaux2, built on Nuclear Music Player"
+authors = ["nukeop <12746779+nukeop@users.noreply.github.com>", "Creaux2"]
 license = "AGPL-3.0-only"
 repository = "https://github.com/nukeop/nuclear"
 edition = "2021"
@@ -58,4 +58,3 @@ tauri-plugin-process = "2"
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-window-state = "2.4.1"
-

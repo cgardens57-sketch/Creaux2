@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Nuclear",
-  "mainBinaryName": "nuclear-music-player",
-  "version": "1.43.2",
-  "identifier": "com.nuclearplayer",
+  "productName": "Creaux2",
+  "mainBinaryName": "creaux2",
+  "version": "2.0.0",
+  "identifier": "studio.creaux2.nuclear",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -13,9 +13,12 @@
   "app": {
     "windows": [
       {
-        "title": "Nuclear Music Player",
-        "width": 800,
-        "height": 600,
+        "title": "Creaux2 - Listening Observatory",
+        "width": 1440,
+        "height": 900,
+        "minWidth": 860,
+        "minHeight": 640,
+        "decorations": false,
         "resizable": true,
         "fullscreen": false,
         "visible": false
@@ -28,11 +31,11 @@
   "bundle": {
     "active": true,
     "category": "Music",
-    "shortDescription": "Music streaming app for your desktop",
-    "longDescription": "Nuclear is a free, open-source music player without ads or tracking. Search for any song or artist, build playlists, and start listening.",
-    "copyright": "Copyright 2025-2026 nukeop",
-    "homepage": "https://nuclearplayer.com",
-    "createUpdaterArtifacts": true,
+    "shortDescription": "A crystalline, source-independent music player",
+    "longDescription": "Creaux2 is a source-independent listening observatory built on Nuclear's open music architecture.",
+    "copyright": "Copyright 2025-2026 nukeop; Creaux2 interface 2026",
+    "homepage": "https://github.com/nukeop/nuclear",
+    "createUpdaterArtifacts": false,
     "targets": "all",
     "icon": [
       "icons/icon.png",

@@ -25,7 +25,7 @@ export class StreamResolution {
     const { updateItemState } = useQueueStore.getState();
 
     if (options.autoPlay) {
-      useSoundStore.getState().stop();
+      useSoundStore.getState().beginTransition();
     }
     updateItemState(item.id, { status: 'loading', error: undefined });
 
@@ -116,10 +116,12 @@ export class StreamResolution {
       audioSource.startPositionSeconds = options.startPositionSeconds;
     }
 
-    useSoundStore.getState().setSrc(audioSource);
+    const sound = useSoundStore.getState();
+    const shouldAutoPlay = options.autoPlay && sound.transitioning;
+    sound.setSrc(audioSource, item.id);
     useQueueStore.getState().updateItemState(item.id, { status: 'success' });
     this.activeItemId = null;
-    if (options.autoPlay) {
+    if (shouldAutoPlay) {
       useSoundStore.getState().play();
     }
   }

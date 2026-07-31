@@ -1,5 +1,29 @@
 [
   {
+    "date": "2026-07-26T12:00",
+    "description": "Creaux2 now opens with a complete cinematic title sequence: a dark pin-light ignition, traveling spectral flare, precision wordmark reveal, hand-authored crystalline SVG bloom, silver-field transition, and a restrained two-option title menu. Confirming a menu option now prepares the application behind the title and carries both surfaces through a continuous crystalline handoff curtain, eliminating the blank frame and hard layout cut. The sequence supports mouse and keyboard navigation, fast-forward, original synthesized selection tones, direct entry into Interface settings, reduced motion, native window controls, and a persistent Play title sequence preference. Creaux2 playlists now have track-derived cover mosaics, editable custom artwork, fully actionable precision-list controls, and a spatial song-card carousel with crystalline selection feedback plus explicit start/end jumps. Every track surface now has a dedicated Add to playlist action that opens the user's real imported playlists, supports Create and add, prevents accidental duplicates, and confirms the saved destination. Playback gains an adjustable persistent volume rail, mute control, an optional app-local gain stage with a hearing-safety warning, a fine-grained 128-band waveform driven by a 2048-point analysis of the actual playing spectrum with responsive attack and gentle decay to silence on pause, stop, or loading, and a persistent three-state loop control for normal playback, infinite queue looping, or infinite current-song looping. Track changes now fade the outgoing recording fully to silence, keep the output silent while the replacement stream loads, and fade in only after the new source is ready, preventing stale audio fragments from replaying. Credited artist names are individual contextual navigation targets across search, playlists, library, discovery, the carousel readout, and Now Playing; each target preserves the person's contribution, originating recording, and linked metadata provider when available. Search has an explicit submit action, actionable track rows, and dedicated Keep controls on album and artist cards; misleading inactive controls are removed, and the command-bar controls share a centered visual axis.",
+    "type": "feature",
+    "contributors": ["Creaux2"],
+    "tags": [
+      {
+        "label": "Playlists",
+        "color": "cyan"
+      }
+    ]
+  },
+  {
+    "date": "2026-07-26T00:00",
+    "description": "Creaux2 interface overhaul: crystalline depth, responsive interaction sound, source visibility, cinematic navigation, and a provider-only observatory with no fabricated feed content.",
+    "type": "feature",
+    "contributors": ["Creaux2"],
+    "tags": [
+      {
+        "label": "Interface",
+        "color": "cyan"
+      }
+    ]
+  },
+  {
     "date": "2026-07-20T00:00",
     "description": "Fix bluetooth issues on Linux.",
     "type": "fix",

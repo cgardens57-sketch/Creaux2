@@ -27,6 +27,7 @@ vi.mock('@tauri-apps/plugin-log', () => ({
   info: () => Promise.resolve(),
 }));
 vi.mock('sonner', () => ({
+  Toaster: () => null,
   toast: { error: (...args: unknown[]) => toastError(...args) },
 }));
 

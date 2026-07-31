@@ -5,7 +5,16 @@ import type { ProviderKind } from '@nuclearplayer/plugin-sdk';
 
 const STORE_FILE = 'active-providers.json';
 const STORE_KEY = 'active';
+const DEFAULTS_VERSION_KEY = 'creaux.defaultsVersion';
+const DEFAULTS_VERSION = 2;
 const store = new LazyStore(STORE_FILE);
+
+export const DEFAULT_ACTIVE_PROVIDERS: Record<string, string> = {
+  metadata: 'omnisource-meta',
+  streaming: 'omnisource-stream',
+};
+
+let persistenceTask: Promise<void> = Promise.resolve();
 
 type ProvidersStoreState = {
   active: Record<string, string>;
@@ -17,9 +26,14 @@ type ProvidersStoreState = {
 };
 
 const saveToDisk = async (): Promise<void> => {
-  const { active } = useProvidersStore.getState();
-  await store.set(STORE_KEY, active);
-  await store.save();
+  const snapshot = useProvidersStore.getState().active;
+  persistenceTask = persistenceTask
+    .catch(() => undefined)
+    .then(async () => {
+      await store.set(STORE_KEY, snapshot);
+      await store.save();
+    });
+  await persistenceTask;
 };
 
 export const useProvidersStore = create<ProvidersStoreState>((set, get) => ({
@@ -27,9 +41,20 @@ export const useProvidersStore = create<ProvidersStoreState>((set, get) => ({
 
   loadFromDisk: async () => {
     const record = await store.get<Record<string, string>>(STORE_KEY);
-    set({
-      active: record ?? {},
-    });
+    const defaultsVersion =
+      (await store.get<number>(DEFAULTS_VERSION_KEY)) ?? 0;
+    const active =
+      defaultsVersion < DEFAULTS_VERSION
+        ? { ...(record ?? {}), ...DEFAULT_ACTIVE_PROVIDERS }
+        : { ...DEFAULT_ACTIVE_PROVIDERS, ...(record ?? {}) };
+
+    set({ active });
+
+    if (defaultsVersion < DEFAULTS_VERSION) {
+      await store.set(STORE_KEY, active);
+      await store.set(DEFAULTS_VERSION_KEY, DEFAULTS_VERSION);
+      await store.save();
+    }
   },
 
   getActive: (kind: ProviderKind): string | undefined => {

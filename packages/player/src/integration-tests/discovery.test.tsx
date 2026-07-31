@@ -15,6 +15,7 @@ vi.mock('@tauri-apps/api/core', () => ({
 
 const toastError = vi.fn();
 vi.mock('sonner', () => ({
+  Toaster: () => null,
   toast: { error: (...args: unknown[]) => toastError(...args) },
 }));
 

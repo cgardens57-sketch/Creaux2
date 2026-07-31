@@ -11,6 +11,7 @@ import {
   cleanupDownload,
   downloadAndExtractPlugin,
 } from '../services/plugins/pluginDownloader';
+import { isCreauxPluginSupported } from '../services/plugins/creauxPluginPolicy';
 import { upsertRegistryEntry } from '../services/plugins/pluginRegistry';
 import { usePluginStore } from '../stores/pluginStore';
 import { errorMessage } from '../utils/errorMessage';
@@ -26,6 +27,9 @@ export const useInstallPlugin = () => {
 
   return useMutation({
     mutationFn: async ({ plugin }: InstallPluginParams) => {
+      if (!isCreauxPluginSupported(plugin.id)) {
+        throw new Error(`${plugin.name} is not available in Creaux2`);
+      }
       const release = await pluginMarketplaceApi.getLatestRelease(plugin.repo);
 
       const extractedPath = await downloadAndExtractPlugin({
