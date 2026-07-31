@@ -1,68 +1,36 @@
 # Creaux2
 
-Creaux2 is a cinematic desktop music player built on Nuclear's
-source-independent search, metadata, streaming, playlist, and playback engine.
-It replaces Nuclear's application shell with a focused interface, motion
-system, title sequence, audio-reactive presentation, and interaction language
-designed specifically for desktop listening.
+yea so i wanted Nuclear to look cooler so I made AI do it
 
-## What Creaux2 changes
+## Install
 
-- A bespoke desktop interface with translucent, crystalline visual structure.
-- Playlist-first library navigation without generated or placeholder content.
-- Configurable metadata, streaming, dashboard, and playlist providers.
-- Search, queue, playback, artist navigation, and playlist management.
-- Carousel and conventional track browsing modes.
-- Audio-reactive visualization with adjustable reactivity and segment density.
-- A synchronized title sequence that can continue the last playing track.
-- Custom interaction details, transitions, sound cues, and easter eggs.
+### Windows
 
-## Content behavior
+Install these requirements first:
 
-Creaux2 does not fabricate playlists, tracks, or feed rows. Home content comes
-from the active provider, the user's library, and the user's real playlists.
-Provider roles can be configured independently from the application's source
-settings.
+- [Git for Windows](https://git-scm.com/download/win)
+- [Node.js 22](https://nodejs.org/)
+- [pnpm 10](https://pnpm.io/installation)
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Microsoft C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with **Desktop development with C++**
 
-## Development
+Clone the repository and build the installer:
 
-Creaux2 retains Nuclear's pnpm monorepo and Tauri desktop architecture.
-
-Requirements:
-
-- Node.js 22
-- pnpm 10
-- Rust and the platform requirements for Tauri 2
-
-Install dependencies and run the desktop application:
-
-```sh
+```powershell
+git clone https://github.com/cgardens57-sketch/Creaux2.git
+cd Creaux2
 pnpm install
-pnpm dev
-```
-
-Run the main checks:
-
-```sh
-pnpm type-check
-pnpm test
-pnpm lint
-```
-
-Build the desktop player:
-
-```sh
 pnpm --filter @nuclearplayer/player build
 ```
 
-Additional contributor guidance is available in `AGENTS.md`,
-`CONTRIBUTING.md`, and `packages/docs`.
+When the build finishes, run either installer:
 
-## Upstream and license
+- `packages/player/src-tauri/target/release/bundle/nsis/Creaux2_2.0.0_x64-setup.exe`
+- `packages/player/src-tauri/target/release/bundle/msi/Creaux2_2.0.0_x64_en-US.msi`
 
-Creaux2 is derived from
-[Nuclear](https://github.com/nukeop/nuclear) at upstream commit
-`d030cc10d060041aa792e2854ce8f3995335fbdf`.
+To run Creaux2 directly in development mode instead:
 
-It is distributed under the GNU Affero General Public License v3.0. See
-`LICENSE` and `ATTRIBUTION.md` for the complete terms and attribution.
+```powershell
+pnpm install
+pnpm dev
+```
